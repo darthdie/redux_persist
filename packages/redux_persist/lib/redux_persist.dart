@@ -57,6 +57,8 @@ class Persistor<T> {
   final StreamController<dynamic> _errorStreamController =
       new StreamController<dynamic>.broadcast();
 
+  final List<dynamic> ignoreActions;
+
   /// Debug mode (prints debug information).
   bool debug;
 
@@ -71,14 +73,16 @@ class Persistor<T> {
     this.transforms,
     this.rawTransforms,
     this.debug = false,
-  });
+    List<dynamic> ignoreActions
+  }):
+    this.ignoreActions = ignoreActions ?? new List<dynamic>();
 
   /// Middleware used for Redux which saves on each action.
   Middleware<T> createMiddleware() =>
       (Store<T> store, dynamic action, NextDispatcher next) {
         next(action);
 
-        if (action is! PersistAction) {
+        if (action is! PersistAction && !ignoreActions.contains(action)) {
           try {
             // Save
             save(store);
